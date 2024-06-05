@@ -2,7 +2,6 @@ const express = require("express");
 
 // Local
 const connectDB = require("./database/connection");
-const Expense = require("./models/Expenses");
 const expensesRouter = require("./routers/expenses");
 
 const app = express();

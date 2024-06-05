@@ -34,6 +34,7 @@ router.post("/expenses", async (req, res) => {
     expense_date,
     expense_reason,
     expense_comment,
+    update_from: "EXP",
   });
 
   try {
