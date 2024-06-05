@@ -22,6 +22,10 @@ const expenseSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  update_from: {
+    type: String,
+    default: "EXP",
+  },
   expense_date_time: {
     type: Date,
     default: Date.now,
