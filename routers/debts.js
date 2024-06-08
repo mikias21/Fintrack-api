@@ -71,17 +71,17 @@ router.put("/debts/:id", async (req, res) => {
 
 router.put("/debts/pay/:id", async (req, res) => {
   try {
-    const updateDebt = await Debt.findByIdAndUpdate(
-      req.params.id,
-      { debt_paid: true },
-      { new: true }
-    );
+    const debt = await Debt.findById(req.params.id);
 
-    if (!updateDebt) {
+    if (!debt) {
       return res.status(404).json({ message: "Debt not found" });
     }
 
-    res.status(200).json(updateDebt);
+    debt.debt_paid = !debt.debt_paid;
+
+    const updatedDebt = await debt.save();
+
+    res.status(200).json(updatedDebt);
   } catch (error) {
     res.status(500).json({ message: "Error updating debt", error });
   }
