@@ -4,6 +4,7 @@ const express = require("express");
 const connectDB = require("./database/connection");
 const expensesRouter = require("./routers/expenses");
 const incomesRouter = require("./routers/incomes");
+const debtsRouter = require("./routers/debts");
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 // Use the expenses router
 app.use("/api/v1", expensesRouter);
 app.use("/api/v1", incomesRouter);
+app.use("/api/v1", debtsRouter);
 
 const PORT = process.env.PORT || 5000;
 

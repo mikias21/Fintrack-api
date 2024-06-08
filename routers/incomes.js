@@ -56,7 +56,7 @@ router.put("/incomes/:id", async (req, res) => {
         income_date,
         income_reason,
         income_comment,
-        expense_date_time: Date.now(), // Update the date time
+        income_date_time: Date.now(), // Update the date time
       },
       { new: true }
     );
