@@ -69,6 +69,24 @@ router.put("/debts/:id", async (req, res) => {
   }
 });
 
+router.put("/debts/pay/:id", async (req, res) => {
+  try {
+    const updateDebt = await Debt.findByIdAndUpdate(
+      req.params.id,
+      { debt_paid: true },
+      { new: true }
+    );
+
+    if (!updateDebt) {
+      return res.status(404).json({ message: "Debt not found" });
+    }
+
+    res.status(200).json(updateDebt);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating debt", error });
+  }
+});
+
 router.delete("/debts/:id", async (req, res) => {
   try {
     const deletedDebt = await Debt.findByIdAndDelete(req.params.id);
