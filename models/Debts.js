@@ -26,6 +26,9 @@ const debtSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  debt_paid_details: {
+    type: [{ paid_amount: Number, paid_date: String }],
+  },
   update_from: {
     type: String,
     default: "DEBT",

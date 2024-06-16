@@ -72,12 +72,30 @@ router.put("/debts/:id", async (req, res) => {
 router.put("/debts/pay/:id", async (req, res) => {
   try {
     const debt = await Debt.findById(req.params.id);
+    const { debt_paid_amount, debt_paid_date } = req.body;
 
     if (!debt) {
       return res.status(404).json({ message: "Debt not found" });
     }
 
-    debt.debt_paid = !debt.debt_paid;
+    if (debt_paid_amount > debt.debt_amount) {
+      return res.status(400).json({
+        message: "The amount you are paying is more than the money you owe",
+      });
+    } else {
+      debt.debt_amount -= debt_paid_amount;
+    }
+
+    if (debt.debt_amount == 0) {
+      debt.debt_paid = true;
+    } else {
+      debt.debt_paid = false;
+    }
+
+    debt.debt_paid_details = [
+      ...debt.debt_paid_details,
+      { paid_amount: debt_paid_amount, paid_date: debt_paid_date },
+    ];
 
     const updatedDebt = await debt.save();
 
