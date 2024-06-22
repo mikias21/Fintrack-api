@@ -6,6 +6,10 @@ const expenseSchema = new mongoose.Schema({
     type: String,
     default: uuidv4,
   },
+  user_id: {
+    type: String,
+    required: true,
+  },
   expense_amount: {
     type: Number,
     required: true,

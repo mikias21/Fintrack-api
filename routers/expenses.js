@@ -3,18 +3,21 @@ const router = express.Router();
 const { v4: uuidv4 } = require("uuid");
 const Expense = require("../models/Expenses");
 
-router.get("/expenses", async (req, res) => {
+router.get("/expenses/:user_id", async (req, res) => {
   try {
-    const expenses = await Expense.find();
+    const expenses = await Expense.find({ user_id: req.params.user_id });
     res.status(200).json(expenses);
   } catch (error) {
     res.status(500).json({ message: "Error fetching expenses", error });
   }
 });
 
-router.get("/expenses/:id", async (req, res) => {
+router.get("/expenses/:id/:user_id", async (req, res) => {
   try {
-    const expense = await Expense.findById(req.params.id);
+    const expense = await Expense.find({
+      _id: req.params.id,
+      user_id: req.params.user_id,
+    });
     if (!expense) {
       return res.status(404).json({ message: "Expense not found" });
     }
@@ -25,8 +28,13 @@ router.get("/expenses/:id", async (req, res) => {
 });
 
 router.post("/expenses", async (req, res) => {
-  const { expense_amount, expense_date, expense_reason, expense_comment } =
-    req.body;
+  const {
+    expense_amount,
+    expense_date,
+    expense_reason,
+    expense_comment,
+    user_id,
+  } = req.body;
 
   const newExpense = new Expense({
     _id: uuidv4(),
@@ -34,6 +42,7 @@ router.post("/expenses", async (req, res) => {
     expense_date,
     expense_reason,
     expense_comment,
+    user_id,
   });
 
   try {
@@ -71,9 +80,12 @@ router.put("/expenses/:id", async (req, res) => {
   }
 });
 
-router.delete("/expenses/:id", async (req, res) => {
+router.delete("/expenses/:id/:user_id", async (req, res) => {
   try {
-    const deletedExpense = await Expense.findByIdAndDelete(req.params.id);
+    const deletedExpense = await Expense.findOneAndDelete({
+      _id: id,
+      user_id: user_id,
+    });
 
     if (!deletedExpense) {
       return res.status(404).json({ message: "Expense not found" });
