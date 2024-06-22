@@ -3,18 +3,21 @@ const router = express.Router();
 const { v4: uuidv4 } = require("uuid");
 const Income = require("../models/Income");
 
-router.get("/incomes", async (req, res) => {
+router.get("/incomes/:user_id", async (req, res) => {
   try {
-    const incomes = await Income.find();
+    const incomes = await Income.find({ user_id: req.params.user_id });
     res.status(200).json(incomes);
   } catch (error) {
     res.status(500).json({ message: "Error fetching incomes", error });
   }
 });
 
-router.get("/incomes/:id", async (req, res) => {
+router.get("/incomes/:id/:user_id", async (req, res) => {
   try {
-    const income = await Income.findById(req.params.id);
+    const income = await Income.find({
+      _id: req.params.id,
+      user_id: req.params.user_id,
+    });
     if (!income) {
       return res.status(404).json({ message: "Income not found" });
     }
@@ -25,7 +28,7 @@ router.get("/incomes/:id", async (req, res) => {
 });
 
 router.post("/incomes", async (req, res) => {
-  const { income_amount, income_date, income_reason, income_comment } =
+  const { income_amount, income_date, income_reason, income_comment, user_id } =
     req.body;
 
   const newIncome = new Income({
@@ -34,6 +37,7 @@ router.post("/incomes", async (req, res) => {
     income_date,
     income_reason,
     income_comment,
+    user_id,
   });
 
   try {
@@ -71,9 +75,14 @@ router.put("/incomes/:id", async (req, res) => {
   }
 });
 
-router.delete("/incomes/:id", async (req, res) => {
+router.delete("/incomes/:id/:user_id", async (req, res) => {
+  const { id, user_id } = req.params;
+
   try {
-    const deletedIncome = await Income.findByIdAndDelete(req.params.id);
+    const deletedIncome = await Income.findOneAndDelete({
+      _id: id,
+      user_id: user_id,
+    });
 
     if (!deletedIncome) {
       return res.status(404).json({ message: "Income not found" });

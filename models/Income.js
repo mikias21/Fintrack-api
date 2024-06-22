@@ -6,6 +6,10 @@ const incomeSchema = new mongoose.Schema({
     type: String,
     default: uuidv4,
   },
+  user_id: {
+    type: String,
+    required: true,
+  },
   income_amount: {
     type: Number,
     required: true,
