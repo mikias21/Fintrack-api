@@ -28,7 +28,7 @@ router.get("/savings/:id/:user_id", async (req, res) => {
 });
 
 router.post("/savings", async (req, res) => {
-  const { saving_amount, saving_date, saving_comment } = req.body;
+  const { saving_amount, saving_date, saving_comment, user_id } = req.body;
 
   const newSaving = new Saving({
     _id: uuidv4(),
