@@ -3,18 +3,22 @@ const router = express.Router();
 const { v4: uuidv4 } = require("uuid");
 const Debt = require("../models/Debts");
 
-router.get("/debts", async (req, res) => {
+router.get("/debts/:user_id", async (req, res) => {
   try {
-    const debts = await Debt.find();
+    const debts = await Debt.find({ user_id: req.params.user_id });
     res.status(200).json(debts);
   } catch (error) {
     res.status(500).json({ message: "Error fetching debts", error });
   }
 });
 
-router.get("/debts/:id", async (req, res) => {
+router.get("/debts/:id/:user_id", async (req, res) => {
   try {
-    const debt = await Debt.findById(req.params.id);
+    const userId = req.query.user_id;
+    const debt = await Debt.find({
+      _id: req.params.id,
+      user_id: req.params.user_id,
+    });
     if (!debt) {
       return res.status(404).json({ message: "Debt not found" });
     }
@@ -25,7 +29,7 @@ router.get("/debts/:id", async (req, res) => {
 });
 
 router.post("/debts", async (req, res) => {
-  const { debt_amount, debt_date, debt_from, debt_comment } = req.body;
+  const { debt_amount, debt_date, debt_from, debt_comment, user_id } = req.body;
 
   const newDebt = new Debt({
     _id: uuidv4(),
@@ -33,6 +37,7 @@ router.post("/debts", async (req, res) => {
     debt_date,
     debt_from,
     debt_comment,
+    user_id,
   });
 
   try {
@@ -43,12 +48,13 @@ router.post("/debts", async (req, res) => {
   }
 });
 
-router.put("/debts/:id", async (req, res) => {
+router.put("/debts/:id/:user_id", async (req, res) => {
   const { debt_amount, debt_date, debt_from, debt_comment } = req.body;
+  const { id, user_id } = req.params;
 
   try {
-    const updatedDebt = await Debt.findByIdAndUpdate(
-      req.params.id,
+    const updatedDebt = await Debt.findOneAndUpdate(
+      { _id: id, user_id: user_id },
       {
         debt_amount,
         debt_date,
@@ -69,9 +75,11 @@ router.put("/debts/:id", async (req, res) => {
   }
 });
 
-router.put("/debts/pay/:id", async (req, res) => {
+router.put("/debts/pay/:id/:user_id", async (req, res) => {
+  const { id, user_id } = req.params;
+
   try {
-    const debt = await Debt.findById(req.params.id);
+    const debt = await Debt.findOne({ _id: id, user_id: user_id });
     const { debt_paid_amount, debt_paid_date } = req.body;
 
     if (!debt) {
@@ -105,9 +113,14 @@ router.put("/debts/pay/:id", async (req, res) => {
   }
 });
 
-router.delete("/debts/:id", async (req, res) => {
+router.delete("/debts/:id/:user_id", async (req, res) => {
+  const { id, user_id } = req.params;
+
   try {
-    const deletedDebt = await Debt.findByIdAndDelete(req.params.id);
+    const deletedDebt = await Debt.findOneAndDelete({
+      _id: id,
+      user_id: user_id,
+    });
 
     if (!deletedDebt) {
       return res.status(404).json({ message: "Debt not found" });
