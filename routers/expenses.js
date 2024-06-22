@@ -81,6 +81,7 @@ router.put("/expenses/:id", async (req, res) => {
 });
 
 router.delete("/expenses/:id/:user_id", async (req, res) => {
+  const { id, user_id } = req.params;
   try {
     const deletedExpense = await Expense.findOneAndDelete({
       _id: id,
@@ -93,6 +94,7 @@ router.delete("/expenses/:id/:user_id", async (req, res) => {
 
     res.status(200).json({ message: "Expense deleted successfully" });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Error deleting expense", error });
   }
 });
