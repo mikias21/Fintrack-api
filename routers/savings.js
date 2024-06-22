@@ -3,18 +3,21 @@ const router = express.Router();
 const { v4: uuidv4 } = require("uuid");
 const Saving = require("../models/Savings");
 
-router.get("/savings", async (req, res) => {
+router.get("/savings/:user_id", async (req, res) => {
   try {
-    const savings = await Saving.find();
+    const savings = await Saving.find({ user_id: req.params.user_id });
     res.status(200).json(savings);
   } catch (error) {
     res.status(500).json({ message: "Error fetching savings", error });
   }
 });
 
-router.get("/savings/:id", async (req, res) => {
+router.get("/savings/:id/:user_id", async (req, res) => {
   try {
-    const saving = await Saving.findById(req.params.id);
+    const saving = await Saving.find({
+      _id: req.params.id,
+      user_id: req.params.user_id,
+    });
     if (!saving) {
       return res.status(404).json({ message: "Saving not found" });
     }
@@ -32,6 +35,7 @@ router.post("/savings", async (req, res) => {
     saving_amount,
     saving_date,
     saving_comment,
+    user_id,
   });
 
   try {
@@ -67,9 +71,13 @@ router.put("/savings/:id", async (req, res) => {
   }
 });
 
-router.delete("/savings/:id", async (req, res) => {
+router.delete("/savings/:id/:user_id", async (req, res) => {
+  const { id, user_id } = req.params;
   try {
-    const deltedSaving = await Saving.findByIdAndDelete(req.params.id);
+    const deltedSaving = await Saving.findOneAndDelete({
+      _id: id,
+      user_id: user_id,
+    });
 
     if (!deltedSaving) {
       return res.status(404).json({ message: "Saving not found" });

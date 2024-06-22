@@ -10,6 +10,10 @@ const savingSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  user_id: {
+    type: String,
+    required: true,
+  },
   saving_date: {
     type: String,
     required: true,
