@@ -125,4 +125,49 @@ router.put("/saving/deduct/:user_id", async (req, res) => {
   }
 });
 
+router.delete("/saving/deduct/:user_id/:deduct_id", async (req, res) => {
+  const { user_id, deduct_id } = req.params;
+  try {
+    const deleteDeduction = await SavingExpense.findOneAndDelete({
+      _id: deduct_id,
+      user_id,
+    });
+
+    if (!deleteDeduction) {
+      res.status(404).json({ message: "Expense not found" });
+    }
+
+    res.status(200).json({ message: "Expense deleted successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting expense", error });
+  }
+});
+
+router.get("/saving/deduct/:user_id", async (req, res) => {
+  const { user_id } = req.params;
+  try {
+    const savingsExpenses = await SavingExpense.find({
+      user_id,
+    });
+    res.status(200).json(savingsExpenses);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching saving expenses", error });
+  }
+});
+
+router.get("/saving/deduct/:user_id/:id", async (req, res) => {
+  try {
+    const savingExpense = await SavingExpense.find({
+      _id: req.params.id,
+      user_id: req.params.user_id,
+    });
+    if (!savingExpense) {
+      return res.status(404).json({ message: "Saving expense not found" });
+    }
+    res.status(200).json(savingExpense);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching saving expense", error });
+  }
+});
+
 module.exports = router;
