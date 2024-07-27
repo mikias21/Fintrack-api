@@ -94,11 +94,25 @@ router.put("/saving/deduct/:user_id", async (req, res) => {
   const { user_id } = req.params;
   const { spending_amount, spending_comment, spending_date } = req.body;
   const savings = await Saving.find({ user_id });
+  const savingsExpenses = await SavingExpense.find({
+    user_id,
+  });
+
   if (savings.length > 0) {
-    const totalSavings = savings.reduce((sum, saving) => {
-      return sum + saving.saving_amount;
+    const totalSavingExpense = savingsExpenses.reduce((sum, saving) => {
+      return sum + saving.spending_amount;
     }, 0);
-    if (spending_amount > totalSavings) {
+
+    const totalSavings =
+      savings.reduce((sum, saving) => {
+        return sum + saving.saving_amount;
+      }, 0) - totalSavingExpense;
+
+    if (spending_amount <= 0) {
+      res.status(404).json({ message: "Please specify proper amount." });
+    }
+
+    if (totalSavings < spending_amount) {
       res
         .status(404)
         .json({ message: "Your spending amount is higher than your savings." });
