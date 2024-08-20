@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const { body, validationResult } = require("express-validator");
 const User = require("../models/User");
 const { hashPassword, verifyPassword } = require("../utils/generators");
+const {validateAndCleanUserName, validatePassword} = require("../utils/validators");
 
 const saltRounds = 10;
 
@@ -31,34 +32,20 @@ router.get("/auth/users/:id", async (req, res) => {
 
 router.post(
   "/auth/signup",
-  [
-    body("user_name")
-      .isString()
-      .trim()
-      .notEmpty()
-      .withMessage("Username is required")
-      .isLength({ min: 3, max: 15 })
-      .withMessage("Username must be between 3 and 20 characters"),
-    body("user_password")
-      .isString()
-      .notEmpty()
-      .withMessage("Password is required")
-      .isLength({ min: 6 })
-      .withMessage("Password must be at least 6 characters long"),
-  ],
   async (req, res) => {
     const { user_name, user_password } = req.body;
 
-    // Validate inputs
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    const usernameValidation = validateAndCleanUserName(user_name);
+
+    if(usernameValidation["verdict"] === false){
+      return res.status(400)
+                .json({message: usernameValidation["message"]})
     }
 
     try {
       // Check if user already exists
       const user = await User.findOne({
-        user_name: user_name.toLowerCase(),
+        user_name: usernameValidation["value"],
       });
 
       if (user) {
@@ -67,11 +54,21 @@ router.post(
           .json({ message: "User already registered. Try another name." });
       }
 
+      // Validate password
+      passwordValidation = validatePassword(user_password);
+      console.log(passwordValidation);
+
+      if(!passwordValidation['verdict']){
+        return res
+          .status(400)
+          .json({ message: passwordValidation["message"]});
+      }
+
       // Insert new user
-      const hashed_password = await hashPassword(user_password);
+      const hashed_password = await hashPassword(passwordValidation['value']);
       const newUser = new User({
         _id: uuidv4(),
-        user_name: user_name.toLowerCase(),
+        user_name: usernameValidation["value"],
         user_password: hashed_password,
       });
 
@@ -85,32 +82,23 @@ router.post(
 
 router.post(
   "/auth/signin",
-  [
-    body("user_name")
-      .isString()
-      .trim()
-      .notEmpty()
-      .withMessage("Username is required")
-      .isLength({ min: 3, max: 15 })
-      .withMessage("Username must be between 3 and 20 characters"),
-    body("user_password")
-      .isString()
-      .notEmpty()
-      .withMessage("Password is required"),
-  ],
   async (req, res) => {
     const { user_name, user_password } = req.body;
 
-    // Validate inputs
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    userName = user_name.trim()
+    const userNameLength = user_name.length;
+    const passwordLength = user_password.length;
 
+    if(userNameLength === 0 || passwordLength === 0){
+      return res
+          .status(404)
+          .json({ message: "Username and password can not be empty." });
+    }
+    
     try {
       // Check if user exists
       const user = await User.findOne({
-        user_name: user_name.toLowerCase(),
+        user_name: userName.toLowerCase(),
       });
 
       if (!user) {
