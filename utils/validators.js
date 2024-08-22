@@ -45,6 +45,13 @@ const validateNumericAmount = (value) => {
     return {value, verdict: false, message: "Given amount is invalid, please input numeric value."}
 }
 
+const validateStringInput = (value) => {
+    const regex = /^[a-zA-Z]+$/;
+    if(!regex.test(value))
+        return {value, verdict: false, message: "Use letters only."}
+    return {value, verdict: true}
+}
+
 const validateDateInputs = (date) => {
     const dateFormatRegex = /^\d{4}[-/]\d{2}[-/]\d{2}$/;
     if (!dateFormatRegex.test(date)) {
@@ -63,4 +70,4 @@ const validateDateInputs = (date) => {
     return {value: date, verdict: true}
 }
 
-module.exports = {validateAndCleanUserName, validatePassword, validateNumericAmount, validateDateInputs};
+module.exports = {validateAndCleanUserName, validatePassword, validateNumericAmount, validateDateInputs, validateStringInput};
