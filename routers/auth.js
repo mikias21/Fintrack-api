@@ -56,7 +56,6 @@ router.post(
 
       // Validate password
       passwordValidation = validatePassword(user_password);
-      console.log(passwordValidation);
 
       if(!passwordValidation['verdict']){
         return res
@@ -91,7 +90,7 @@ router.post(
 
     if(userNameLength === 0 || passwordLength === 0){
       return res
-          .status(404)
+          .status(400)
           .json({ message: "Username and password can not be empty." });
     }
     

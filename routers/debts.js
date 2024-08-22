@@ -37,32 +37,31 @@ router.post("/debts", async (req, res) => {
   // Validate amount
   const debtAmountValidation = validateNumericAmount(debt_amount);
   if(!debtAmountValidation["verdict"]){
-    return res.status(404).json({"message": debtAmountValidation["message"]});
+    return res.status(400).json({message: debtAmountValidation["message"]});
   }
 
   // Validate date
   const dateValidation = validateDateInputs(debt_date);
   if(!dateValidation["verdict"]){
-    return res.status(400).json({"message": dateValidation["message"]});
+    return res.status(400).json({message: dateValidation["message"]});
   }
 
   // Validate from
   let debtFrom = debt_from.trim();
   if(debtFrom.length > 10)
-    return res.status(404).json({"message": "Only 10 letters are allowed for From field"});
+    return res.status(400).json({message: "Only 10 letters are allowed for From field"});
   
   const fromValidation = validateStringInput(debtFrom);
   if(!fromValidation["verdict"])
-    return res.status(400).json({"message": fromValidation["message"]});
+    return res.status(400).json({message: fromValidation["message"]});
 
   // validate user id
   try {
     const user = await User.find({ _id: user_id });
     if(user.length === 0){
-      return res.status(400).json({"message": "Invalid user ID, try again later."})
+      return res.status(404).json({message: "Invalid user ID, try again later."})
     }
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ "message": "Unable finding user record. Try again in a bit."});
   }
 
@@ -118,10 +117,10 @@ router.put("/debts/pay/:id/:user_id", async (req, res) => {
   try {
     const user = await User.find({ _id: user_id });
     if(user.length === 0){
-      return res.status(400).json({"message": "Invalid user ID, try again later."})
+      return res.status(404).json({message: "Invalid user ID, try again later."})
     }
   } catch (error) {
-    return res.status(500).json({ "message": "Unable finding user record. Try again in a bit."});
+    return res.status(500).json({ message: "Unable finding user record. Try again in a bit."});
   }
 
   // validate debt id
@@ -144,13 +143,13 @@ router.put("/debts/pay/:id/:user_id", async (req, res) => {
     // validate amount
     const debtPaidAmountValidation = validateNumericAmount(debt_paid_amount);
     if(!debtPaidAmountValidation["verdict"]){
-      return res.status(404).json({"message": debtPaidAmountValidation["message"]});
+      return res.status(400).json({message: debtPaidAmountValidation["message"]});
     }
 
     // validate date
     const dateValidation = validateDateInputs(debt_paid_date);
     if(!dateValidation["verdict"]){
-      return res.status(400).json({"message": dateValidation["message"]});
+      return res.status(400).json({message: dateValidation["message"]});
     }
 
     if (!debt) {
@@ -191,10 +190,10 @@ router.delete("/debts/:id/:user_id", async (req, res) => {
   try {
     const user = await User.find({ _id: user_id });
     if(user.length === 0){
-      return res.status(400).json({"message": "Invalid user ID, try again later."})
+      return res.status(404).json({message: "Invalid user ID, try again later."})
     }
   } catch (error) {
-    return res.status(500).json({ "message": "Unable finding user record. Try again in a bit."});
+    return res.status(500).json({ message: "Unable finding user record. Try again in a bit."});
   }
 
   // validate debt id
