@@ -111,7 +111,7 @@ router.post(
       const isMatch = await verifyPassword(user_password, user.user_password);
       if (isMatch) {
         const token = generateToken({id: user._id, user_name: user.user_name});
-        return res.status(200).json({token, user_name});
+        return res.status(200).json({token, user_name, id: user._id});
       } else {
         return res
           .status(404)
