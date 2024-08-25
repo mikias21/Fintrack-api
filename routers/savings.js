@@ -5,22 +5,26 @@ const { v4: uuidv4 } = require("uuid");
 const User = require("../models/User");
 const Saving = require("../models/Savings");
 const SavingExpense = require("../models/SavingExpenses");
+const {validateToken} = require('../utils/middleWares');
 const {validateNumericAmount, validateDateInputs} = require("../utils/validators");
 
-router.get("/savings/:user_id", async (req, res) => {
+router.get("/savings/", validateToken, async (req, res) => {
+  const user_id = req.user.id;
   try {
-    const savings = await Saving.find({ user_id: req.params.user_id });
+    const savings = await Saving.find({ user_id });
     res.status(200).json(savings);
   } catch (error) {
     res.status(500).json({ message: "Error fetching savings", error });
   }
 });
 
-router.get("/savings/:id/:user_id", async (req, res) => {
+router.get("/savings/:id/", validateToken, async (req, res) => {
+  const user_id = req.user.id;
+
   try {
     const saving = await Saving.find({
       _id: req.params.id,
-      user_id: req.params.user_id,
+      user_id,
     });
     if (!saving) {
       return res.status(404).json({ message: "Saving not found" });
@@ -31,8 +35,9 @@ router.get("/savings/:id/:user_id", async (req, res) => {
   }
 });
 
-router.post("/savings", async (req, res) => {
-  const { saving_amount, saving_date, saving_comment, user_id } = req.body;
+router.post("/savings", validateToken, async (req, res) => {
+  const user_id = req.user.id;
+  const { saving_amount, saving_date, saving_comment} = req.body;
 
   // validate saving_amount
   const savingAmountValidation = validateNumericAmount(saving_amount);
@@ -97,8 +102,9 @@ router.put("/savings/:id", async (req, res) => {
   }
 });
 
-router.delete("/savings/:id/:user_id", async (req, res) => {
-  const { id, user_id } = req.params;
+router.delete("/savings/:id/", validateToken, async (req, res) => {
+  const { id } = req.params;
+  const user_id = req.user.id;
 
   // Validate user ID
   try {
@@ -139,8 +145,8 @@ router.delete("/savings/:id/:user_id", async (req, res) => {
   }
 });
 
-router.put("/saving/deduct/:user_id", async (req, res) => {
-  const { user_id } = req.params;
+router.put("/savings/deduct/", validateToken, async (req, res) => {
+  const user_id = req.user.id;
   const { spending_amount, spending_comment, spending_date } = req.body;
 
   // Validate user id
@@ -211,8 +217,9 @@ router.put("/saving/deduct/:user_id", async (req, res) => {
   }
 });
 
-router.delete("/saving/deduct/:user_id/:deduct_id", async (req, res) => {
-  const { user_id, deduct_id } = req.params;
+router.delete("/savings/deduct/:deduct_id", validateToken, async (req, res) => {
+  const { deduct_id } = req.params;
+  const user_id = req.user.id;
 
   // Validate user id
   try {
@@ -250,8 +257,8 @@ router.delete("/saving/deduct/:user_id/:deduct_id", async (req, res) => {
   }
 });
 
-router.get("/saving/deduct/:user_id", async (req, res) => {
-  const { user_id } = req.params;
+router.get("/savings/deduct/", validateToken, async (req, res) => {
+  const user_id = req.user.id;
   try {
     const savingsExpenses = await SavingExpense.find({
       user_id,
@@ -262,11 +269,13 @@ router.get("/saving/deduct/:user_id", async (req, res) => {
   }
 });
 
-router.get("/saving/deduct/:user_id/:id", async (req, res) => {
+router.get("/savings/deduct/:id", validateToken, async (req, res) => {
+  const user_id = req.user.id;
+
   try {
     const savingExpense = await SavingExpense.find({
       _id: req.params.id,
-      user_id: req.params.user_id,
+      user_id,
     });
     if (!savingExpense) {
       return res.status(404).json({ message: "Saving expense not found" });

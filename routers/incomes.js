@@ -6,22 +6,27 @@ const he = require('he');
 const Income = require("../models/Income");
 const User = require("../models/User");
 const {validateNumericAmount, validateDateInputs} = require("../utils/validators");
+const {validateToken} = require("../utils/middleWares");
 const INCOME_REASON = ['SALARY', 'PART TIME GICK', 'MEAL MONEY', 'BUSINESS', 'OTHERS'];
 
-router.get("/incomes/:user_id", async (req, res) => {
+router.get("/incomes/", validateToken, async (req, res) => {
+  const user_id = req.user.id;
+
   try {
-    const incomes = await Income.find({ user_id: req.params.user_id });
+    const incomes = await Income.find({ user_id });
     res.status(200).json(incomes);
   } catch (error) {
     res.status(500).json({ message: "Error fetching incomes", error });
   }
 });
 
-router.get("/incomes/:id/:user_id", async (req, res) => {
+router.get("/incomes/:id", validateToken, async (req, res) => {
+  const user_id = req.user.id;
+
   try {
     const income = await Income.find({
       _id: req.params.id,
-      user_id: req.params.user_id,
+      user_id,
     });
     if (!income) {
       return res.status(404).json({ message: "Income not found" });
@@ -32,8 +37,10 @@ router.get("/incomes/:id/:user_id", async (req, res) => {
   }
 });
 
-router.post("/incomes", async (req, res) => {
-  const { income_amount, income_date, income_reason, income_comment, user_id } =
+router.post("/incomes", validateToken, async (req, res) => {
+  const user_id = req.user.id;
+
+  const { income_amount, income_date, income_reason, income_comment} =
     req.body;
   
   // validate income_amount
@@ -114,8 +121,9 @@ router.put("/incomes/:id", async (req, res) => {
   }
 });
 
-router.delete("/incomes/:id/:user_id", async (req, res) => {
-  const { id, user_id } = req.params;
+router.delete("/incomes/:id", validateToken, async (req, res) => {
+  const user_id = req.user.id;
+  const { id } = req.params;
 
   // Validate user ID
   try {

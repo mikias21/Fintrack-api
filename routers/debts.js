@@ -4,20 +4,23 @@ const { v4: uuidv4 } = require("uuid");
 
 const Debt = require("../models/Debts");
 const User = require("../models/User");
+const {validateToken} = require("../utils/middleWares");
 const {validateNumericAmount, validateDateInputs, validateStringInput} = require("../utils/validators");
 
-router.get("/debts/:user_id", async (req, res) => {
+router.get("/debts", validateToken, async (req, res) => {
+  const user_id = req.user.id;
+
   try {
-    const debts = await Debt.find({ user_id: req.params.user_id });
+    const debts = await Debt.find({ user_id });
     res.status(200).json(debts);
   } catch (error) {
     res.status(500).json({ message: "Error fetching debts", error });
   }
 });
 
-router.get("/debts/:id/:user_id", async (req, res) => {
+router.get("/debts/:id", validateToken, async (req, res) => {
   try {
-    const userId = req.query.user_id;
+    const userId = req.user.id;
     const debt = await Debt.find({
       _id: req.params.id,
       user_id: userId,
@@ -31,8 +34,9 @@ router.get("/debts/:id/:user_id", async (req, res) => {
   }
 });
 
-router.post("/debts", async (req, res) => {
-  const { debt_amount, debt_date, debt_from, debt_comment, user_id } = req.body;
+router.post("/debts", validateToken, async (req, res) => {
+  const user_id = req.user.id;
+  const { debt_amount, debt_date, debt_from, debt_comment } = req.body;
 
   // Validate amount
   const debtAmountValidation = validateNumericAmount(debt_amount);
@@ -83,9 +87,10 @@ router.post("/debts", async (req, res) => {
 });
 
 // When this route is used, input has to be validated
-router.put("/debts/:id/:user_id", async (req, res) => {
+router.put("/debts/:id", validateToken, async (req, res) => {
   const { debt_amount, debt_date, debt_from, debt_comment } = req.body;
-  const { id, user_id } = req.params;
+  const { id } = req.params;
+  const user_id = req.user.id;
 
   try {
     const updatedDebt = await Debt.findOneAndUpdate(
@@ -110,8 +115,9 @@ router.put("/debts/:id/:user_id", async (req, res) => {
   }
 });
 
-router.put("/debts/pay/:id/:user_id", async (req, res) => {
-  const { id, user_id } = req.params;
+router.put("/debts/pay/:id", validateToken, async (req, res) => {
+  const { id } = req.params;
+  const user_id = req.user.id;
 
   // validate user id
   try {
@@ -183,8 +189,9 @@ router.put("/debts/pay/:id/:user_id", async (req, res) => {
   }
 });
 
-router.delete("/debts/:id/:user_id", async (req, res) => {
-  const { id, user_id } = req.params;
+router.delete("/debts/:id", validateToken, async (req, res) => {
+  const { id } = req.params;
+  const user_id = req.user.id;
 
   // validate user id
   try {

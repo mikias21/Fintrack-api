@@ -6,6 +6,7 @@ const { body, validationResult } = require("express-validator");
 const User = require("../models/User");
 const { hashPassword, verifyPassword } = require("../utils/generators");
 const {validateAndCleanUserName, validatePassword} = require("../utils/validators");
+const {generateToken} = require("../utils/jwt");
 
 const saltRounds = 10;
 
@@ -109,13 +110,15 @@ router.post(
       // Verify password
       const isMatch = await verifyPassword(user_password, user.user_password);
       if (isMatch) {
-        return res.status(200).json(user);
+        const token = generateToken({id: user._id, user_name: user.user_name});
+        return res.status(200).json({token, user_name});
       } else {
         return res
           .status(404)
           .json({ message: "Incorrect username or password." });
       }
     } catch (error) {
+      console.log(error);
       return res.status(500).json({ message: "Error signing in", error });
     }
   }
