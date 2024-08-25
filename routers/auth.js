@@ -7,6 +7,7 @@ const User = require("../models/User");
 const { hashPassword, verifyPassword } = require("../utils/generators");
 const {validateAndCleanUserName, validatePassword} = require("../utils/validators");
 const {generateToken} = require("../utils/jwt");
+const { validateToken } = require("../utils/middleWares");
 
 const saltRounds = 10;
 
@@ -123,5 +124,14 @@ router.post(
     }
   }
 );
+
+router.get('/auth/verify', validateToken, (req, res) => {
+  const user = req.user;
+  if(user){
+    return res.status(200).json({id: user.id, user_name: user.user_name});
+  }else{
+    return res.status(400);
+  }
+})
 
 module.exports = router;
