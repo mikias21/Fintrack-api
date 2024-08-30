@@ -4,7 +4,7 @@ const SECRET = process.env.JWT_SECRET;
 
 const generateToken = (payload) => {
     const options = {
-        expiresIn: '1h'
+        expiresIn: '30d'
     }
 
     const token = jwt.sign(payload, SECRET, options);
