@@ -80,7 +80,7 @@ router.put("/deduct/", validateToken, async (req, res) => {
     }
 });
   
-router.delete("/savings/deduct/:deduct_id", validateToken, async (req, res) => {
+router.delete("/deduct/:deduct_id", validateToken, async (req, res) => {
     const { deduct_id } = req.params;
     const user_id = req.user.id;
 
