@@ -1,23 +1,29 @@
 const express = require("express");
 const router = express.Router();
 const { v4: uuidv4 } = require("uuid");
-const Debt = require("../models/Debts");
 
-router.get("/debts/:user_id", async (req, res) => {
+const Debt = require("../models/Debts");
+const User = require("../models/User");
+const {validateToken} = require("../utils/middleWares");
+const {validateNumericAmount, validateDateInputs, validateStringInput} = require("../utils/validators");
+
+router.get("/debts", validateToken, async (req, res) => {
+  const user_id = req.user.id;
+
   try {
-    const debts = await Debt.find({ user_id: req.params.user_id });
+    const debts = await Debt.find({ user_id });
     res.status(200).json(debts);
   } catch (error) {
     res.status(500).json({ message: "Error fetching debts", error });
   }
 });
 
-router.get("/debts/:id/:user_id", async (req, res) => {
+router.get("/debts/:id", validateToken, async (req, res) => {
   try {
-    const userId = req.query.user_id;
+    const userId = req.user.id;
     const debt = await Debt.find({
       _id: req.params.id,
-      user_id: req.params.user_id,
+      user_id: userId,
     });
     if (!debt) {
       return res.status(404).json({ message: "Debt not found" });
@@ -28,14 +34,46 @@ router.get("/debts/:id/:user_id", async (req, res) => {
   }
 });
 
-router.post("/debts", async (req, res) => {
-  const { debt_amount, debt_date, debt_from, debt_comment, user_id } = req.body;
+router.post("/debts", validateToken, async (req, res) => {
+  const user_id = req.user.id;
+  const { debt_amount, debt_date, debt_from, debt_comment } = req.body;
+
+  // Validate amount
+  const debtAmountValidation = validateNumericAmount(debt_amount);
+  if(!debtAmountValidation["verdict"]){
+    return res.status(400).json({message: debtAmountValidation["message"]});
+  }
+
+  // Validate date
+  const dateValidation = validateDateInputs(debt_date);
+  if(!dateValidation["verdict"]){
+    return res.status(400).json({message: dateValidation["message"]});
+  }
+
+  // Validate from
+  let debtFrom = debt_from.trim();
+  if(debtFrom.length > 10)
+    return res.status(400).json({message: "Only 10 letters are allowed for From field"});
+  
+  const fromValidation = validateStringInput(debtFrom);
+  if(!fromValidation["verdict"])
+    return res.status(400).json({message: fromValidation["message"]});
+
+  // validate user id
+  try {
+    const user = await User.find({ _id: user_id });
+    if(user.length === 0){
+      return res.status(404).json({message: "Invalid user ID, try again later."})
+    }
+  } catch (error) {
+    return res.status(500).json({ "message": "Unable finding user record. Try again in a bit."});
+  }
 
   const newDebt = new Debt({
     _id: uuidv4(),
     debt_amount,
     debt_date,
-    debt_from,
+    debt_from: debtFrom,
     debt_comment,
     user_id,
   });
@@ -48,9 +86,11 @@ router.post("/debts", async (req, res) => {
   }
 });
 
-router.put("/debts/:id/:user_id", async (req, res) => {
+// When this route is used, input has to be validated
+router.put("/debts/:id", validateToken, async (req, res) => {
   const { debt_amount, debt_date, debt_from, debt_comment } = req.body;
-  const { id, user_id } = req.params;
+  const { id } = req.params;
+  const user_id = req.user.id;
 
   try {
     const updatedDebt = await Debt.findOneAndUpdate(
@@ -75,12 +115,48 @@ router.put("/debts/:id/:user_id", async (req, res) => {
   }
 });
 
-router.put("/debts/pay/:id/:user_id", async (req, res) => {
-  const { id, user_id } = req.params;
+router.put("/debts/pay/:id", validateToken, async (req, res) => {
+  const { id } = req.params;
+  const user_id = req.user.id;
+
+  // validate user id
+  try {
+    const user = await User.find({ _id: user_id });
+    if(user.length === 0){
+      return res.status(404).json({message: "Invalid user ID, try again later."})
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Unable finding user record. Try again in a bit."});
+  }
+
+  // validate debt id
+  try {
+    const debt = await Debt.find({
+      _id: id,
+      user_id: user_id,
+    });
+    if (debt.length === 0) {
+      return res.status(404).json({ message: "Debt record not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching debt record", error });
+  }
 
   try {
     const debt = await Debt.findOne({ _id: id, user_id: user_id });
     const { debt_paid_amount, debt_paid_date } = req.body;
+
+    // validate amount
+    const debtPaidAmountValidation = validateNumericAmount(debt_paid_amount);
+    if(!debtPaidAmountValidation["verdict"]){
+      return res.status(400).json({message: debtPaidAmountValidation["message"]});
+    }
+
+    // validate date
+    const dateValidation = validateDateInputs(debt_paid_date);
+    if(!dateValidation["verdict"]){
+      return res.status(400).json({message: dateValidation["message"]});
+    }
 
     if (!debt) {
       return res.status(404).json({ message: "Debt not found" });
@@ -113,8 +189,32 @@ router.put("/debts/pay/:id/:user_id", async (req, res) => {
   }
 });
 
-router.delete("/debts/:id/:user_id", async (req, res) => {
-  const { id, user_id } = req.params;
+router.delete("/debts/:id", validateToken, async (req, res) => {
+  const { id } = req.params;
+  const user_id = req.user.id;
+
+  // validate user id
+  try {
+    const user = await User.find({ _id: user_id });
+    if(user.length === 0){
+      return res.status(404).json({message: "Invalid user ID, try again later."})
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Unable finding user record. Try again in a bit."});
+  }
+
+  // validate debt id
+  try {
+    const debt = await Debt.find({
+      _id: id,
+      user_id: user_id,
+    });
+    if (debt.length === 0) {
+      return res.status(404).json({ message: "Debt record not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching debt record", error });
+  }
 
   try {
     const deletedDebt = await Debt.findOneAndDelete({

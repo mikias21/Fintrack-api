@@ -6,6 +6,9 @@ const { body, validationResult } = require("express-validator");
 const User = require("../models/User");
 const { hashPassword, verifyPassword } = require("../utils/generators");
 const {validateAndCleanUserName, validatePassword} = require("../utils/validators");
+const {generateToken} = require("../utils/jwt");
+const { validateToken } = require("../utils/middleWares");
+
 
 const saltRounds = 10;
 
@@ -34,12 +37,6 @@ router.post(
   "/auth/signup",
   async (req, res) => {
     const { user_name, user_password } = req.body;
-
-    // // Validate inputs
-    // const errors = validationResult(req);
-    // if (!errors.isEmpty()) {
-    //   return res.status(400).json({ errors: errors.array() });
-    // }
     const usernameValidation = validateAndCleanUserName(user_name);
 
     if(usernameValidation["verdict"] === false){
@@ -61,7 +58,6 @@ router.post(
 
       // Validate password
       passwordValidation = validatePassword(user_password);
-      console.log(passwordValidation);
 
       if(!passwordValidation['verdict']){
         return res
@@ -96,6 +92,7 @@ router.post(
 
     if(userNameLength === 0 || passwordLength === 0){
       return res
+          .status(400)
           .status(404)
           .json({ message: "Username and password can not be empty." });
     }
@@ -115,16 +112,27 @@ router.post(
       // Verify password
       const isMatch = await verifyPassword(user_password, user.user_password);
       if (isMatch) {
-        return res.status(200).json(user);
+        const token = generateToken({id: user._id, user_name: user.user_name});
+        return res.status(200).json({token, user_name, id: user._id});
       } else {
         return res
           .status(404)
           .json({ message: "Incorrect username or password." });
       }
     } catch (error) {
+      console.log(error);
       return res.status(500).json({ message: "Error signing in", error });
     }
   }
 );
+
+router.get('/auth/verify', validateToken, (req, res) => {
+  const user = req.user;
+  if(user){
+    return res.status(200).json({id: user.id, user_name: user.user_name});
+  }else{
+    return res.status(400);
+  }
+})
 
 module.exports = router;
