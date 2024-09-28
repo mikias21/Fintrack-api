@@ -9,6 +9,7 @@ const {validateAndCleanUserName, validatePassword} = require("../utils/validator
 const {generateToken} = require("../utils/jwt");
 const { validateToken } = require("../utils/middleWares");
 
+
 const saltRounds = 10;
 
 router.get("/auth/users", async (req, res) => {
@@ -36,7 +37,6 @@ router.post(
   "/auth/signup",
   async (req, res) => {
     const { user_name, user_password } = req.body;
-
     const usernameValidation = validateAndCleanUserName(user_name);
 
     if(usernameValidation["verdict"] === false){
@@ -93,6 +93,7 @@ router.post(
     if(userNameLength === 0 || passwordLength === 0){
       return res
           .status(400)
+          .status(404)
           .json({ message: "Username and password can not be empty." });
     }
     
