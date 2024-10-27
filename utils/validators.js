@@ -71,4 +71,3 @@ const validateDateInputs = (date) => {
 }
 
 module.exports = {validateAndCleanUserName, validatePassword, validateNumericAmount, validateDateInputs, validateStringInput};
-module.exports = {validateAndCleanUserName, validatePassword};
