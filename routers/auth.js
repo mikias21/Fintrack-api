@@ -8,6 +8,10 @@ const { hashPassword, verifyPassword } = require("../utils/generators");
 const {validateAndCleanUserName, validatePassword} = require("../utils/validators");
 const {generateToken} = require("../utils/jwt");
 const { validateToken } = require("../utils/middleWares");
+<<<<<<< HEAD
+=======
+
+>>>>>>> 80fd076c3341c59a1428c7f0373c3deb39d7f242
 
 const saltRounds = 10;
 
@@ -36,7 +40,10 @@ router.post(
   "/auth/signup",
   async (req, res) => {
     const { user_name, user_password } = req.body;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 80fd076c3341c59a1428c7f0373c3deb39d7f242
     const usernameValidation = validateAndCleanUserName(user_name);
 
     if(usernameValidation["verdict"] === false){
@@ -93,6 +100,10 @@ router.post(
     if(userNameLength === 0 || passwordLength === 0){
       return res
           .status(400)
+<<<<<<< HEAD
+=======
+          .status(404)
+>>>>>>> 80fd076c3341c59a1428c7f0373c3deb39d7f242
           .json({ message: "Username and password can not be empty." });
     }
     
