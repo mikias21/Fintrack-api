@@ -6,7 +6,7 @@ const Expense = require("../models/Expenses");
 const User = require("../models/User");
 const {validateToken} = require("../utils/middleWares");
 const {validateNumericAmount, validateDateInputs} = require("../utils/validators");
-const EXPENSE_REASON = ['FOOD AND DRINKS', 'CLOTHING', 'INTERNET', 'GOING OUT', 'OTHERS'];
+const EXPENSE_REASON = ['GROCERIES', 'RENT', 'UTILITIES', 'TRANSPORT', 'HEALTH', 'OTHERS'];
 
 router.get("/expenses/", validateToken, async (req, res) => {
   try {

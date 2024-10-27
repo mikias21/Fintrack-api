@@ -7,7 +7,7 @@ const Income = require("../models/Income");
 const User = require("../models/User");
 const {validateNumericAmount, validateDateInputs} = require("../utils/validators");
 const {validateToken} = require("../utils/middleWares");
-const INCOME_REASON = ['SALARY', 'PART TIME GICK', 'MEAL MONEY', 'BUSINESS', 'OTHERS'];
+const INCOME_REASON = ['SALARY', 'INVESTMENTS', 'FREELANCE', 'BUSINESS', 'OTHERS'];
 
 router.get("/incomes/", validateToken, async (req, res) => {
   const user_id = req.user.id;
